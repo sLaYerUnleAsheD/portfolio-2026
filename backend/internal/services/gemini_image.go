@@ -77,11 +77,19 @@ func (g *GeminiImageGenerator) GenerateCatArt(ctx context.Context) (ImageResult,
 
 	response, err := g.client.Models.GenerateImages(ctx, "imagen-4.0-generate-001", prompt, config)
 	if err != nil {
-		return ImageResult{}, fmt.Errorf("Imagen API call failed: %w", err)
+		log.Printf("⚠️ Imagen API call failed (paid plan may be required): %v. Falling back to placeholder.", err)
+		return ImageResult{
+			URL:     "https://placecats.com/600/400",
+			Caption: "A cute cat (fallback due to API tier limits) 🐱",
+		}, nil
 	}
 
 	if len(response.GeneratedImages) == 0 {
-		return ImageResult{}, fmt.Errorf("no images returned from Imagen API")
+		log.Printf("⚠️ No images returned from Imagen API. Falling back to placeholder.")
+		return ImageResult{
+			URL:     "https://placecats.com/600/400",
+			Caption: "A cute cat (fallback) 🐱",
+		}, nil
 	}
 
 	// Convert image bytes to a base64 data URL
