@@ -57,6 +57,10 @@ func NewGeminiImageGenerator(apiKey string) (*GeminiImageGenerator, error) {
 	return &GeminiImageGenerator{client: client}, nil
 }
 
+// lastSuccessfulImage keeps an in-memory cache of the last successful generation
+// so we can fallback to real AI art if the API limit is reached.
+var lastSuccessfulImage *ImageResult
+
 // GenerateCatArt generates a 2D anime-style cat image using Imagen.
 // The prompt is deterministic per day (based on day-of-year) so the same
 // image concept is requested for the entire day. Combined with the 24h cache
@@ -77,7 +81,12 @@ func (g *GeminiImageGenerator) GenerateCatArt(ctx context.Context) (ImageResult,
 
 	response, err := g.client.Models.GenerateImages(ctx, "imagen-4.0-generate-001", prompt, config)
 	if err != nil {
-		log.Printf("⚠️ Imagen API call failed (paid plan may be required): %v. Falling back to placeholder.", err)
+		log.Printf("⚠️ Imagen API call failed (paid plan may be required): %v.", err)
+		if lastSuccessfulImage != nil {
+			log.Printf("Falling back to last successful AI image.")
+			return *lastSuccessfulImage, nil
+		}
+		log.Printf("No cached AI image available. Falling back to placecats.")
 		return ImageResult{
 			URL:     "https://placecats.com/600/400",
 			Caption: "A cute cat (fallback due to API tier limits) 🐱",
@@ -85,7 +94,10 @@ func (g *GeminiImageGenerator) GenerateCatArt(ctx context.Context) (ImageResult,
 	}
 
 	if len(response.GeneratedImages) == 0 {
-		log.Printf("⚠️ No images returned from Imagen API. Falling back to placeholder.")
+		log.Printf("⚠️ No images returned from Imagen API.")
+		if lastSuccessfulImage != nil {
+			return *lastSuccessfulImage, nil
+		}
 		return ImageResult{
 			URL:     "https://placecats.com/600/400",
 			Caption: "A cute cat (fallback) 🐱",
@@ -109,8 +121,13 @@ func (g *GeminiImageGenerator) GenerateCatArt(ctx context.Context) (ImageResult,
 	r := rand.New(rand.NewSource(int64(dayOfYear)))
 	emoji := emojis[r.Intn(len(emojis))]
 
-	return ImageResult{
+	result := ImageResult{
 		URL:     dataURL,
 		Caption: fmt.Sprintf("%s %s", caption, emoji),
-	}, nil
+	}
+
+	// Cache it so it can be used if API quota runs out later
+	lastSuccessfulImage = &result
+
+	return result, nil
 }

@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/url"
 	"strings"
 
 	"google.golang.org/genai"
@@ -54,12 +55,11 @@ func (g *GeminiMusicGenerator) GenerateTrack(ctx context.Context, genre string) 
 
 	prompt := fmt.Sprintf(`Fetch a random real life music track name and artist name for the "%s" genre. 
 Return ONLY a JSON object with exactly these fields, no markdown formatting, no code blocks:
-{"trackName": "creative track name", "artist": "creative artist/band name", "genre": "%s", "spotifyUrl": "real open.spotify.com link"}
+{"trackName": "creative track name", "artist": "creative artist/band name", "genre": "%s"}
 
 Requirements:
 - The track should match the %s genre mood
 - The artist name should be a real artist or band
-- Provide a realistic Spotify URL for the track
 - Return ONLY the JSON, nothing else`, label, label, label)
 
 	parts := []*genai.Part{
@@ -108,6 +108,10 @@ Requirements:
 
 	// Ensure genre label is properly formatted
 	track.Genre = label
+
+	// Construct a robust Spotify search URL based on the track and artist
+	searchQuery := fmt.Sprintf("%s %s", track.TrackName, track.Artist)
+	track.SpotifyURL = fmt.Sprintf("https://open.spotify.com/search/%s", url.QueryEscape(searchQuery))
 
 	return track, nil
 }
