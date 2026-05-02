@@ -1,0 +1,50 @@
+# ═══════════════════════════════════════════════════════════════════
+# Docker Compose — Local Development
+#
+# Usage:
+#   docker compose up        → Start both frontend & backend
+#   docker compose up -d     → Start in background
+#   docker compose down      → Stop all services
+#
+# The frontend runs on http://localhost:5173 (Vite HMR)
+# The backend  runs on http://localhost:8080 (Go API)
+# Vite proxies /api/* requests to the backend automatically.
+# ═══════════════════════════════════════════════════════════════════
+
+version: "3.9"
+
+services:
+  # ─── Frontend (Vite Dev Server) ──────────────────────────────
+  frontend:
+    image: node:22-alpine
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - frontend_modules:/app/node_modules
+    ports:
+      - "5173:5173"
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - backend
+
+  # ─── Backend (Go API Server) ─────────────────────────────────
+  backend:
+    image: golang:1.23-alpine
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+      - go_modules:/go/pkg/mod
+    ports:
+      - "8080:8080"
+    command: sh -c "go run ./cmd/server"
+    environment:
+      - PORT=8080
+      - USE_MOCKS=true
+    env_file:
+      - .env
+
+volumes:
+  frontend_modules:
+  go_modules:
