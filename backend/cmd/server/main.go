@@ -72,7 +72,17 @@ func main() {
 			imageGen = services.NewMockImageGenerator()
 		}
 
-		musicGen, err = services.NewGeminiMusicGenerator(apiKey)
+		spotifyClientID := getEnv("SPOTIFY_CLIENT_ID", "")
+		spotifyClientSecret := getEnv("SPOTIFY_CLIENT_SECRET", "")
+		var spotifyClient *services.SpotifyClient
+		if spotifyClientID != "" && spotifyClientSecret != "" {
+			log.Println("🎵 Spotify API credentials found, exact track links enabled")
+			spotifyClient = services.NewSpotifyClient(spotifyClientID, spotifyClientSecret)
+		} else {
+			log.Println("⚠️  No Spotify API credentials found, exact track links disabled")
+		}
+
+		musicGen, err = services.NewGeminiMusicGenerator(apiKey, spotifyClient)
 		if err != nil {
 			log.Printf("⚠️  Failed to init Gemini music generator, falling back to mock: %v", err)
 			musicGen = services.NewMockMusicGenerator()

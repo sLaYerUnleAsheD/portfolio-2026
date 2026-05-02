@@ -19,11 +19,12 @@ import (
 
 // GeminiMusicGenerator implements MusicGenerator using Google's Gemini text API.
 type GeminiMusicGenerator struct {
-	client *genai.Client
+	client        *genai.Client
+	spotifyClient *SpotifyClient
 }
 
 // NewGeminiMusicGenerator creates a new GeminiMusicGenerator with the provided API key.
-func NewGeminiMusicGenerator(apiKey string) (*GeminiMusicGenerator, error) {
+func NewGeminiMusicGenerator(apiKey string, spotifyClient *SpotifyClient) (*GeminiMusicGenerator, error) {
 	ctx := context.Background()
 	client, err := genai.NewClient(ctx, &genai.ClientConfig{
 		APIKey:  apiKey,
@@ -33,7 +34,7 @@ func NewGeminiMusicGenerator(apiKey string) (*GeminiMusicGenerator, error) {
 		return nil, fmt.Errorf("failed to create Gemini client: %w", err)
 	}
 
-	return &GeminiMusicGenerator{client: client}, nil
+	return &GeminiMusicGenerator{client: client, spotifyClient: spotifyClient}, nil
 }
 
 // GenerateTrack uses Gemini to create a unique, creative track name and artist
@@ -109,9 +110,20 @@ Requirements:
 	// Ensure genre label is properly formatted
 	track.Genre = label
 
-	// Construct a robust Spotify search URL based on the track and artist
+	// Construct a robust Spotify search query based on the track and artist
 	searchQuery := fmt.Sprintf("%s %s", track.TrackName, track.Artist)
-	track.SpotifyURL = fmt.Sprintf("https://open.spotify.com/search/%s", url.QueryEscape(searchQuery))
+	
+	if g.spotifyClient != nil {
+		exactURL, err := g.spotifyClient.SearchTrack(searchQuery)
+		if err == nil {
+			track.SpotifyURL = exactURL
+		} else {
+			log.Printf("[gemini-music] spotify search failed: %v, falling back to search URL", err)
+			track.SpotifyURL = fmt.Sprintf("https://open.spotify.com/search/%s", url.QueryEscape(searchQuery))
+		}
+	} else {
+		track.SpotifyURL = fmt.Sprintf("https://open.spotify.com/search/%s", url.QueryEscape(searchQuery))
+	}
 
 	return track, nil
 }
