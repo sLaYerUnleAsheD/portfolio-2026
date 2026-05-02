@@ -127,9 +127,21 @@ export default function MusicBooth() {
                   {track.trackName}
                 </h3>
                 <p className="text-sm text-cocoa/70 mb-3">{track.artist}</p>
-                <span className="inline-block px-3 py-1 rounded-full bg-terracotta/10 text-terracotta text-xs font-semibold">
-                  {track.genre}
-                </span>
+                <div className="flex items-center justify-center gap-3">
+                  <span className="inline-block px-3 py-1 rounded-full bg-terracotta/10 text-terracotta text-xs font-semibold">
+                    {track.genre}
+                  </span>
+                  {track.spotifyUrl && (
+                    <a
+                      href={track.spotifyUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block px-3 py-1 rounded-full bg-[#1DB954]/10 text-[#1DB954] text-xs font-semibold hover:bg-[#1DB954]/20 transition-colors"
+                    >
+                      Listen on Spotify
+                    </a>
+                  )}
+                </div>
               </div>
             )}
 

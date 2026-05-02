@@ -13,9 +13,10 @@ import (
 
 // TrackResult represents the response from a music generation call.
 type TrackResult struct {
-	TrackName string `json:"trackName"`
-	Artist    string `json:"artist"`
-	Genre     string `json:"genre"`
+	TrackName  string `json:"trackName"`
+	Artist     string `json:"artist"`
+	Genre      string `json:"genre"`
+	SpotifyURL string `json:"spotifyUrl"`
 }
 
 // MusicGenerator is the interface for AI music generation services.

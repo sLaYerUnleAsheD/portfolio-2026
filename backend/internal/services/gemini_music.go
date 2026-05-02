@@ -52,14 +52,14 @@ func (g *GeminiMusicGenerator) GenerateTrack(ctx context.Context, genre string) 
 		label = genre
 	}
 
-	prompt := fmt.Sprintf(`Generate a unique, creative music track for the "%s" genre. 
+	prompt := fmt.Sprintf(`Fetch a random real life music track name and artist name for the "%s" genre. 
 Return ONLY a JSON object with exactly these fields, no markdown formatting, no code blocks:
-{"trackName": "creative track name", "artist": "creative artist/band name", "genre": "%s"}
+{"trackName": "creative track name", "artist": "creative artist/band name", "genre": "%s", "spotifyUrl": "real open.spotify.com link"}
 
 Requirements:
-- The track name should be evocative, poetic, and match the %s genre mood
-- The artist name should sound like a real indie artist or band
-- Be creative and unique — never repeat common names
+- The track should match the %s genre mood
+- The artist name should be a real artist or band
+- Provide a realistic Spotify URL for the track
 - Return ONLY the JSON, nothing else`, label, label, label)
 
 	parts := []*genai.Part{
@@ -99,9 +99,10 @@ Requirements:
 		log.Printf("[gemini-music] failed to parse response, falling back: %v", err)
 		// Fallback: use the raw text as the track name
 		return TrackResult{
-			TrackName: responseText,
-			Artist:    "AI Composer",
-			Genre:     label,
+			TrackName:  responseText,
+			Artist:     "AI Composer",
+			Genre:      label,
+			SpotifyURL: "https://open.spotify.com",
 		}, nil
 	}
 
