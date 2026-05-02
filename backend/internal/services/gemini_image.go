@@ -75,7 +75,7 @@ func (g *GeminiImageGenerator) GenerateCatArt(ctx context.Context) (ImageResult,
 		NumberOfImages: 1,
 	}
 
-	response, err := g.client.Models.GenerateImages(ctx, "imagen-3.0-generate-001", prompt, config)
+	response, err := g.client.Models.GenerateImages(ctx, "imagen-4.0-generate-001", prompt, config)
 	if err != nil {
 		return ImageResult{}, fmt.Errorf("Imagen API call failed: %w", err)
 	}
