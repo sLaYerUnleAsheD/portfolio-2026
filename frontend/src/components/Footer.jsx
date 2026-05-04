@@ -51,6 +51,7 @@ export default function Footer() {
           </div>
 
           {/* Social icons */}
+          {/* Temporarily hidden 
           <div className="flex items-center gap-4">
             {SOCIAL_LINKS.map(({ label, href, icon }) => (
               <a
@@ -65,6 +66,7 @@ export default function Footer() {
               </a>
             ))}
           </div>
+          */}
         </div>
 
         {/* Copyright */}
